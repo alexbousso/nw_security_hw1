@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "parser.h"
 #include "test_utils.h"
+#include <stdbool.h>
 
 #define BUFFER_SIZE 256
 
@@ -9,6 +10,35 @@
 const char *types[NUM_OF_TYPES] = {
     "short", "long", "char", "int", "float", "double"
 }
+
+/**************************************************************************************************
+ * Static function declarations
+ *************************************************************************************************/
+
+/**
+ * 
+ */
+bool isVariableDeclaration(const char *line);
+
+/**
+ * 
+ */
+char *getLastWord(const char *line, const char *delimiters);
+
+/**
+ * If the filename is /home/user/prog.c it returns /home/user/protected_prog.c
+ */
+char *getOutputFilename(const char *filename);
+
+/**
+ * 
+ */
+bool isFunctionImplementation(const char *line);
+
+
+/**************************************************************************************************
+ * Implemetation
+ *************************************************************************************************/
 
 int AddCanary(const char *filename, const int canary) {
     if (!filename) {
@@ -93,9 +123,6 @@ static char *getLastWord(const char *line, const char *delimiters) {
     return lastWord;
 }
 
-/**
- * If the filename is /home/user/prog.c it returns /home/user/protected_prog.c
- */
 static char *getOutputFilename(const char *filename) {
     char *outputFilename = getLastWord(filename, "/");
     // char *outputPath = strtok(filename, outputFilename);
