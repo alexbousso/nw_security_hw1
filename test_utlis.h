@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 #ifdef DEBUG_ON
-#define ERROR(format, args...) fprintf(stderr, format, ## args)
+#define ERROR(format, args...) fprintf(stderr, (format), ## (args))
 
 /**
  * Evaluates b and continues if b is true.

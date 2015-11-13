@@ -3,17 +3,17 @@
 #include "parser.h"
 #include "test_utils.h"
 
+#define BUFFER_SIZE 256
 
-#define BUFFER_SIZE 256;
+#define NUM_OF_TYPES 5
+const char *types[NUM_OF_TYPES] = {
+    "short", "long", "char", "int", "float"
+}
 
 int AddCanary(const char *filename, const int canary) {
     if (!filename) {
         return -1;
     }
-
-    // Steps:
-    //    - Find a function
-    //    - Add the canary at the begining and after all variables have been declared
 
     FILE *input;
     FILE *output;
@@ -32,15 +32,49 @@ int AddCanary(const char *filename, const int canary) {
         return -1;
     }
 
+    bool isLastVariableDeclaration = false;
+    bool inFunction = false;
+
+    // Holds the difference between open and closed curly brackets
+    int curlyBrackets = 0;
+
     while (fgets(line, sizeof(line), input)) {
+        if (isLastVariableDeclaration == true) {
+            fprintf(output, "int canary = %d;\n", canary);
+        }
+
         fprintf(output, line);
 
         if (isFunctionImplementation(line)) {
             fprintf(output, "int canary = %d;\n", canary);
+            inFunction = true;
+            brackets++;
+            isLastVariableDeclaration = false;
         }
+
+        if (curlyBrackets == 0) {
+            inFunction = false;
+        }
+
+        ASSERT(curlyBrackets >= 0);
     }
 
     fclose(input);
+    fclose(output);
+}
+
+static bool isVariableDeclaration(const char *line) {
+    char *delimiters = " \t";
+    char *word = strtok(line, delimiters);
+    
+    ASSERT(word);
+    for (int i = 0; i < NUM_OF_TYPES; i++) {
+        if (strcmp(types[i], word) == 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 static char *getLastWord(const char *line, const char *delimiters) {
@@ -55,13 +89,15 @@ static char *getLastWord(const char *line, const char *delimiters) {
     return lastWord;
 }
 
-// If the filename is /home/user/prog.c it returns /home/user/protected_prog.c
+/**
+ * If the filename is /home/user/prog.c it returns /home/user/protected_prog.c
+ */
 static char *getOutputFilename(const char *filename) {
     char *outputFilename = getLastWord(filename, "/");
-    char *outputPath = strtok(filename, outputFilename);
-    ASSERT(outputPath);
+    // char *outputPath = strtok(filename, outputFilename);
+    // ASSERT(outputPath);
     outputFilename = strcat("protected_", outputFilename);
-    outputFilename = strcat(outputPath, outputFilename);
+    // outputFilename = strcat(outputPath, outputFilename);
     return outputFilename;
 }
 
