@@ -5,9 +5,9 @@
 
 #define BUFFER_SIZE 256
 
-#define NUM_OF_TYPES 5
+#define NUM_OF_TYPES 6
 const char *types[NUM_OF_TYPES] = {
-    "short", "long", "char", "int", "float"
+    "short", "long", "char", "int", "float", "double"
 }
 
 int AddCanary(const char *filename, const int canary) {
@@ -50,6 +50,10 @@ int AddCanary(const char *filename, const int canary) {
             inFunction = true;
             brackets++;
             isLastVariableDeclaration = false;
+        }
+
+        if (strcmp(strtok(line, " \t"), "}") == 0) {
+            curlyBrackets--;
         }
 
         if (curlyBrackets == 0) {
