@@ -7,6 +7,6 @@
  * after every function declaration.
  * Returns -1 if there is an error, otherwise returns 0.
  */
-int AddCanary(const char *filename, const int canary);
+int CreateProtectedFile(const char *filename);
 
 #endif /* PARSER_H_ */

@@ -1,0 +1,32 @@
+#include <stdio.h>
+
+void foo(int i);
+void bar(long i);
+
+void main() {
+	long i = 0;
+	bar(i);
+
+	return;
+}
+
+void foo(int i) {
+	char ch = 42;
+	int j = 42;
+
+	if (j == i) {
+		return;
+	}
+	else {
+		printf("a");
+		return;
+	}
+
+	while (42 != ch) {
+		printf("a");
+	}
+}
+
+void bar(long i) {
+	return;
+}

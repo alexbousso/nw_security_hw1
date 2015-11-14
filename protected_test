@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <stdlib.h>
+/* best random source on UNIX-like systems. */
+
+int urandom() {
+#ifdef __unix__
+	int var;
+	FILE *fd = fopen("/dev/urandom", "r");
+	fread(&var, sizeof(int), 1, fd);
+	fclose(fd);
+	return var;
+#else
+	return 4;
+#endif
+}
+
+#include <stdio.h>
+#include "parser.h"
+
+void main();
+
+void main() {
+	int __stack_canary_protection = urandom();
+	int canary1 = __stack_canary_protection;
+	int i = 0;
+	int canary2 = __stack_canary_protection;
+
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+	return;
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+}
+
+void foo(int i) {
+	int __stack_canary_protection = urandom();
+	int canary1 = __stack_canary_protection;
+	char ch = 42;
+	int j = 42;
+	int canary2 = __stack_canary_protection;
+
+	if (j == i) {
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+		return;
+	}
+	else {
+		printf("");
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+		return;
+	}
+
+	while (42 != ch) {
+		printf("");
+	}
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+}
+
+void bar(long i) {
+	int __stack_canary_protection = urandom();
+	int canary1 = __stack_canary_protection;
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+	return;
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+}

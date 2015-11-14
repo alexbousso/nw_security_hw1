@@ -1,6 +1,3 @@
-#ifndef URANDOM_H_
-#define URANDOM_H_
-
 #include <stdio.h>
 #include <stdlib.h>
 /* best random source on UNIX-like systems. */
@@ -16,5 +13,3 @@ int urandom() {
 	return 4;
 #endif
 }
-
-#endif /* URANDOM_H_ */
