@@ -1,10 +1,23 @@
 #include <stdio.h>
-#include "parser.h"
+#include <assert.h>
 
-void main();
+void foo(int i);
+void bar(long i);
+void goo(int i);
+void problem(int *arr);
 
 void main() {
-	int i = 0;
+	long i = 0;
+	int a = 42;
+	int arr[2];
+	bar(i);
+
+	goo(a);
+	assert(a == 42);
+
+	printf("%s\n", "All good!");
+
+	problem(arr);
 
 	return;
 }
@@ -17,15 +30,32 @@ void foo(int i) {
 		return;
 	}
 	else {
-		printf("");
+		printf("a");
 		return;
 	}
 
 	while (42 != ch) {
-		printf("");
+		printf("a");
 	}
 }
 
 void bar(long i) {
+	assert(i == 0);
+	return;
+}
+
+void goo(int i) {
+	int j = 7;
+
+	j = 42;
+	assert(j == i);
+
+}
+
+void problem(int *arr) {
+	int i = 0;
+	for (i = 0; i < 4; i++) {
+		arr[i] = 42;
+	}
 	return;
 }

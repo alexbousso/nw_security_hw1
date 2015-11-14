@@ -17,6 +17,10 @@ const char *types[NUM_OF_TYPES] = {
 /**************************************************************************************************
  * Static function declarations
  *************************************************************************************************/
+/**
+ *
+ */
+static void appendUrandom(FILE *output);
 
 /**
  * 
@@ -82,26 +86,33 @@ int CreateProtectedFile(const char *filename) {
     free(outputFilename);
     outputFilename = 0;
 
-    FILE *urandom = fopen(URANDOM_FILE, "r");
-    if (!urandom) {
-        ERROR("CreateProtectedFile - Cannot open the file %s\n", URANDOM_FILE);
-        fclose(input);
-        fclose(output);
-        exit(1);
-    }
-
-    // Appending urandom code
-    while (fgets(line, sizeof(line), urandom)) {
-        fprintf(output, "%s", line);
-    }
+    appendUrandom(output);
     fprintf(output, "\n");
 
     addCanary(input, output);
 
     fclose(input);
     fclose(output);
-    fclose(urandom);
     return 0;
+}
+
+static void appendUrandom(FILE *output) {
+#define APPEND(__str) fprintf(output, "%s\n", (__str))
+    APPEND("#include <stdio.h>");
+    APPEND("#include <stdlib.h>");
+    APPEND("");
+    APPEND("int urandom() {");
+    APPEND("#ifdef __unix__");
+    APPEND("\tint var;");
+    APPEND("\tFILE *fd = fopen(\"/dev/urandom\", \"r\");");
+    APPEND("\tfread(&var, sizeof(int), 1, fd);");
+    APPEND("\tfclose(fd);");
+    APPEND("\treturn var;");
+    APPEND("#else");
+    APPEND("\treturn 4;");
+    APPEND("#endif");
+    APPEND("}");
+#undef APPEND
 }
 
 static void addCanary(FILE *input, FILE *output) {
@@ -129,7 +140,7 @@ static void addCanary(FILE *input, FILE *output) {
             curlyBrackets++;
         }
 
-        if (isVariableDeclaration(line)) {
+        if (isVariableDeclaration(line) || isFunctionImplementation(line)) {
             isLastVariableDeclaration = true;
         }
 
@@ -149,7 +160,7 @@ static void addCanary(FILE *input, FILE *output) {
             fprintf(output, "\tint canary1 = %s;\n", CANARY_VARIABLE);
             inFunction = true;
         }
-        
+
         ASSERT(curlyBrackets >= 0);
     }
 }
@@ -190,9 +201,9 @@ static char *getLastWord(const char *line, const char *delimiters) {
     strcpy(_line, line);
 
     char *word = strtok(_line, delimiters);
-    char *lastWord;
+    char *lastWord = malloc(sizeof(char) * BUFFER_SIZE);
     while (word) {
-        lastWord = word;
+        strcpy(lastWord, word);
         word = strtok(NULL, delimiters);
     }
 
@@ -227,6 +238,10 @@ static bool isFunctionImplementation(const char *line) {
 
     const char *delimiters = " \t,()";
     char *word = strtok(_line, delimiters);
+    if (!word) {
+        ERROR("isFunctionImplementation - word is null");
+        return false;
+    }
     if (strcmp(word, "void") == 0) {
         char *lastWord = getLastWord(line, delimiters);
 
@@ -234,9 +249,11 @@ static bool isFunctionImplementation(const char *line) {
         // with { and not with ;
         if (strstr(lastWord, "{")) {
             free(_line);
+            free(lastWord);
             return true;
         }
         ASSERT(strstr(lastWord, ";"));
+        free(lastWord);
     }
 
     free(_line);

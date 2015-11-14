@@ -14,16 +14,28 @@ int urandom() {
 }
 
 #include <stdio.h>
+#include <assert.h>
 
 void foo(int i);
 void bar(long i);
+void goo(int i);
+void problem(int *arr);
 
 void main() {
 	int __stack_canary_protection = urandom();
 	int canary1 = __stack_canary_protection;
 	long i = 0;
+	int a = 42;
+	int arr[2];
 	int canary2 = __stack_canary_protection;
 	bar(i);
+
+	goo(a);
+	assert(a == 42);
+
+	printf("%s\n", "All good!");
+
+	problem(arr);
 
 	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
 		printf("Alert! Buffer Overflow detected.");
@@ -72,6 +84,41 @@ void bar(long i) {
 	int __stack_canary_protection = urandom();
 	int canary1 = __stack_canary_protection;
 	int canary2 = __stack_canary_protection;
+	assert(i == 0);
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+	return;
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+}
+
+void goo(int i) {
+	int __stack_canary_protection = urandom();
+	int canary1 = __stack_canary_protection;
+	int j = 7;
+	int canary2 = __stack_canary_protection;
+
+	j = 42;
+	assert(j == i);
+
+	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
+		printf("Alert! Buffer Overflow detected.");
+		exit(1);
+	}
+}
+
+void problem(int *arr) {
+	int __stack_canary_protection = urandom();
+	int canary1 = __stack_canary_protection;
+	int i = 0;
+	int canary2 = __stack_canary_protection;
+	for (i = 0; i < 4; i++) {
+		arr[i] = 42;
+	}
 	if (canary1 != __stack_canary_protection || canary2 != __stack_canary_protection) {
 		printf("Alert! Buffer Overflow detected.");
 		exit(1);
