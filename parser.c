@@ -271,9 +271,11 @@ static bool isReturnDetected(const char *line) {
 
 static void addCheckCanaryCode(FILE *output) {
     ASSERT(output);
+
     fprintf(output, "\tif (canary1 != *%s || canary2 != *%s) {\n", CANARY_VARIABLE, CANARY_VARIABLE);
     fprintf(output, "\t\tprintf(\"Alert! Buffer Overflow detected.\");\n");
     fprintf(output, "\t\tfree(%s);\n", CANARY_VARIABLE);
     fprintf(output, "\t\texit(1);\n");
     fprintf(output, "\t}\n");
+    fprintf(output, "\tfree(%s);\n", CANARY_VARIABLE);
 }
