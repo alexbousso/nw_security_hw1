@@ -129,7 +129,7 @@ static void addCanary(FILE *input, FILE *output) {
     while (fgets(line, sizeof(line), input)) {
         if (isLastVariableDeclaration == true && !isVariableDeclaration(line)) {
             isLastVariableDeclaration = false;
-            fprintf(output, "\tint canary2 = %s;\n", CANARY_VARIABLE);
+            fprintf(output, "\tint canary2 = *%s;\n", CANARY_VARIABLE);
         }
 
         if (strstr(line, "}")) {
@@ -156,8 +156,9 @@ static void addCanary(FILE *input, FILE *output) {
         fprintf(output, "%s", line);
 
         if (isFunctionImplementation(line)) {
-            fprintf(output, "\tint %s = urandom();\n", CANARY_VARIABLE);
-            fprintf(output, "\tint canary1 = %s;\n", CANARY_VARIABLE);
+            fprintf(output, "\tint *%s = (int *) malloc(sizeof(int));\n", CANARY_VARIABLE);
+            fprintf(output, "\t*%s = urandom();\n", CANARY_VARIABLE);
+            fprintf(output, "\tint canary1 = *%s;\n", CANARY_VARIABLE);
             inFunction = true;
         }
 
@@ -270,8 +271,9 @@ static bool isReturnDetected(const char *line) {
 
 static void addCheckCanaryCode(FILE *output) {
     ASSERT(output);
-    fprintf(output, "\tif (canary1 != %s || canary2 != %s) {\n", CANARY_VARIABLE, CANARY_VARIABLE);
+    fprintf(output, "\tif (canary1 != *%s || canary2 != *%s) {\n", CANARY_VARIABLE, CANARY_VARIABLE);
     fprintf(output, "\t\tprintf(\"Alert! Buffer Overflow detected.\");\n");
+    fprintf(output, "\t\tfree(%s);\n", CANARY_VARIABLE);
     fprintf(output, "\t\texit(1);\n");
     fprintf(output, "\t}\n");
 }

@@ -1,5 +1,8 @@
 #! /bin/bash
 
+# Setting option to exit the script if a command exits with a non-zero status
+set -e
+
 TEST_DIR="Tests"
 
 if [[ ! -d "$TEST_DIR" ]]; then
@@ -22,4 +25,4 @@ echo "Executing protector test.c"
 ./protector test.c
 
 echo "Compiling protected_test.c"
-gcc -fno-stack-protector -O0 -z execstack protected_test.c -o protected_test
+gcc -fno-stack-protector -O0 -z execstack protected_test.c -o protected_test -g3
