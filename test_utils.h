@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#define DEBUG_ON
+//#define DEBUG_ON
 
 #ifdef DEBUG_ON
 #define ERROR(format, args...) fprintf(stderr, (format), ## args)
