@@ -8,6 +8,7 @@
 #define PROTECTED_PREFIX "protected_"
 #define URANDOM_FILE "urandom.txt"
 #define CANARY_VARIABLE "__stack_canary_protection"
+#define CANARY_INITIALIZED "__is_canary_protection_initialized"
 
 #define NUM_OF_TYPES 6
 const char *types[NUM_OF_TYPES] = {
@@ -112,6 +113,8 @@ static void appendUrandom(FILE *output) {
     APPEND("\treturn 4;");
     APPEND("#endif");
     APPEND("}");
+    fprintf(output, "int %s = 0;\n", CANARY_VARIABLE);
+    fprintf(output, "int %s = 0;\n", CANARY_INITIALIZED);
 #undef APPEND
 }
 
@@ -129,7 +132,13 @@ static void addCanary(FILE *input, FILE *output) {
     while (fgets(line, sizeof(line), input)) {
         if (isLastVariableDeclaration == true && !isVariableDeclaration(line)) {
             isLastVariableDeclaration = false;
-            fprintf(output, "\tint canary2 = *%s;\n", CANARY_VARIABLE);
+            fprintf(output, "\tint canary2;\n");
+            fprintf(output, "\tif (!%s) {\n", CANARY_INITIALIZED);
+            fprintf(output, "\t\t%s = 1;\n", CANARY_INITIALIZED);
+            fprintf(output, "\t\t%s = urandom();\n", CANARY_VARIABLE);
+            fprintf(output, "\t}\n");
+            fprintf(output, "\tcanary1 = %s;\n", CANARY_VARIABLE);
+            fprintf(output, "\tcanary2 = %s;\n", CANARY_VARIABLE);
         }
 
         if (strstr(line, "}")) {
@@ -156,9 +165,7 @@ static void addCanary(FILE *input, FILE *output) {
         fprintf(output, "%s", line);
 
         if (isFunctionImplementation(line)) {
-            fprintf(output, "\tint *%s = (int *) malloc(sizeof(int));\n", CANARY_VARIABLE);
-            fprintf(output, "\t*%s = urandom();\n", CANARY_VARIABLE);
-            fprintf(output, "\tint canary1 = *%s;\n", CANARY_VARIABLE);
+            fprintf(output, "\tint canary1;\n");
             inFunction = true;
         }
 
@@ -272,10 +279,8 @@ static bool isReturnDetected(const char *line) {
 static void addCheckCanaryCode(FILE *output) {
     ASSERT(output);
 
-    fprintf(output, "\tif (canary1 != *%s || canary2 != *%s) {\n", CANARY_VARIABLE, CANARY_VARIABLE);
+    fprintf(output, "\tif (canary1 != %s || canary2 != %s) {\n", CANARY_VARIABLE, CANARY_VARIABLE);
     fprintf(output, "\t\tprintf(\"Alert! Buffer Overflow detected.\");\n");
-    fprintf(output, "\t\tfree(%s);\n", CANARY_VARIABLE);
     fprintf(output, "\t\texit(1);\n");
     fprintf(output, "\t}\n");
-    fprintf(output, "\tfree(%s);\n", CANARY_VARIABLE);
 }
